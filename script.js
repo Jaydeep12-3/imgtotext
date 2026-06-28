@@ -20,12 +20,12 @@ function showPreview(file) {
     const url = URL.createObjectURL(file);
     previewImg.src = url;
     previewWrp.classList.remove('hidden');
-    dropZone.classList.add('hidden'); // Hide drop zone when preview is active
+    dropZone.classList.add('hidden');
 }
 function hidePreview() {
     previewImg.src = '';
     previewWrp.classList.add('hidden');
-    dropZone.classList.remove('hidden'); // Show drop zone again
+    dropZone.classList.remove('hidden');
     if (selectedFile) URL.revokeObjectURL(previewImg.src);
     selectedFile = null;
     outputBox.value = '';
@@ -43,7 +43,6 @@ dropZone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (file) setFile(file);
-    // Reset input so the same file can be selected again if removed
     e.target.value = '';
 });
 
@@ -67,11 +66,46 @@ function setFile(file) {
         return;
     }
     if (file.size > 5 * 1024 * 1024) {
-        alert('❌ File is too large (max 5 MB).');
+        alert('❌ File is too large (max 5 MB).');
         return;
     }
     selectedFile = file;
     showPreview(file);
+}
+
+/* ---------- Image Preprocessing (Improves OCR Accuracy) ---------- */
+function preprocessImage(file) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Upscale image by 2x (Tesseract loves higher resolution, around 300dpi)
+            const scale = 2;
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            
+            // Draw scaled image
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Get image data for grayscale conversion
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                // Convert to grayscale
+                const avg = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+                data[i] = avg;     // Red
+                data[i+1] = avg;   // Green
+                data[i+2] = avg;   // Blue
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+        };
+    });
 }
 
 /* ---------- OCR processing ---------- */
@@ -81,10 +115,11 @@ ocrBtn.addEventListener('click', async () => {
         return;
     }
     toggleLoader(true, 0);
-    outputBox.value = '';
+    outputBox.value = 'Preparing image for better accuracy...';
+    
     try {
-        // Optional – upload to PHP backend first
-        await uploadToServer(selectedFile);
+        // Preprocess image before feeding to Tesseract
+        const processedImageBase64 = await preprocessImage(selectedFile);
 
         const worker = await Tesseract.createWorker(langSelect.value, 1, {
             logger: m => {
@@ -94,12 +129,20 @@ ocrBtn.addEventListener('click', async () => {
                 }
             }
         });
-        const { data } = await worker.recognize(selectedFile);
-        outputBox.value = data.text.trim();
+        
+        // Pass the preprocessed image instead of the raw file
+        const { data } = await worker.recognize(processedImageBase64);
+        
+        // Clean up the text (remove excessive newlines and weird symbols)
+        let cleanedText = data.text.trim();
+        cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n'); // Max 2 consecutive newlines
+        
+        outputBox.value = cleanedText || "No text could be extracted. Try a clearer image.";
         await worker.terminate();
     } catch (err) {
         console.error(err);
         alert('❌ OCR failed. See console for details.');
+        outputBox.value = '';
     } finally {
         toggleLoader(false);
     }
@@ -117,20 +160,3 @@ copyBtn.addEventListener('click', async () => {
         alert('❌ Unable to copy.');
     }
 });
-
-/* ---------- Optional PHP upload ---------- */
-async function uploadToServer(file) {
-    const form = new FormData();
-    form.append('image', file);
-    try {
-        const resp = await fetch('upload.php', {
-            method: 'POST',
-            body: form
-        });
-        const json = await resp.json();
-        if (!json.success) throw new Error(json.error);
-        console.log('Uploaded to server:', json.path);
-    } catch (err) {
-        console.error('Upload failed:', err);
-    }
-}
