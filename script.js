@@ -3,7 +3,6 @@
    ------------------------------------------------- */
 const dropZone   = document.getElementById('drop-zone');
 const fileInput  = document.getElementById('file-input');
-const fileBtn    = document.getElementById('file-btn');
 const previewImg = document.getElementById('preview-img');
 const previewWrp = document.getElementById('preview-wrapper');
 const removeImg  = document.getElementById('remove-img');
@@ -21,24 +20,31 @@ function showPreview(file) {
     const url = URL.createObjectURL(file);
     previewImg.src = url;
     previewWrp.classList.remove('hidden');
+    dropZone.classList.add('hidden'); // Hide drop zone when preview is active
 }
 function hidePreview() {
     previewImg.src = '';
     previewWrp.classList.add('hidden');
+    dropZone.classList.remove('hidden'); // Show drop zone again
     if (selectedFile) URL.revokeObjectURL(previewImg.src);
     selectedFile = null;
+    outputBox.value = '';
 }
 function toggleLoader(show, percent = 0) {
     loader.classList.toggle('hidden', !show);
-    progress.textContent = `Processing… ${percent}%`;
+    if (show) {
+        progress.textContent = `Processing… ${percent}%`;
+    }
 }
 
 /* ---------- File handling ---------- */
-fileBtn.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (file) setFile(file);
+    // Reset input so the same file can be selected again if removed
+    e.target.value = '';
 });
 
 dropZone.addEventListener('dragover', e => {
@@ -56,7 +62,6 @@ dropZone.addEventListener('drop', e => {
 removeImg.addEventListener('click', hidePreview);
 
 function setFile(file) {
-    // Basic validation – allow only images, max 5 MB
     if (!file.type.startsWith('image/')) {
         alert('❌ Only image files are allowed.');
         return;
@@ -105,8 +110,9 @@ copyBtn.addEventListener('click', async () => {
     if (!outputBox.value) return;
     try {
         await navigator.clipboard.writeText(outputBox.value);
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => copyBtn.textContent = 'Copy Text', 1500);
+        const originalHTML = copyBtn.innerHTML;
+        copyBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        setTimeout(() => copyBtn.innerHTML = originalHTML, 1500);
     } catch (e) {
         alert('❌ Unable to copy.');
     }

@@ -4,41 +4,55 @@
     <meta charset="UTF-8">
     <title>OCR – Screenshot to Text</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Neon‑styled Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-    <!-- Tesseract.js CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="ambient-bg">
+        <div class="color-sphere sphere-1"></div>
+        <div class="color-sphere sphere-2"></div>
+    </div>
     <div class="app-container">
-        <h1>📸 Screenshot to Text (OCR)</h1>
+        <div class="header">
+            <svg class="header-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4-4 4 4"/></svg>
+            <h1>Textify OCR</h1>
+        </div>
+        <p class="subtitle">Extract text from your screenshots instantly.</p>
 
         <!-- Language selector -->
-        <select id="lang-select" class="neon-select">
-            <option value="eng">English</option>
-            <option value="hin">Hindi</option>
-        </select>
+        <div class="controls">
+            <select id="lang-select" class="modern-select">
+                <option value="eng">English (US)</option>
+                <option value="hin">Hindi</option>
+            </select>
+        </div>
 
         <!-- Drag‑drop / Upload area -->
+        <input type="file" id="file-input" accept="image/*" hidden>
         <div id="drop-zone" class="drop-zone">
-            <p>Drag &amp; drop an image here</p>
-            <button id="file-btn" class="neon-btn">Choose File</button>
-            <input type="file" id="file-input" accept="image/*" hidden>
+            <div class="drop-content">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <p>Drag & drop image, or <span class="highlight">browse</span></p>
+            </div>
         </div>
 
         <!-- Image preview -->
         <div id="preview-wrapper" class="preview hidden">
             <img id="preview-img" src="" alt="preview">
-            <button id="remove-img" class="neon-btn small">✖ Remove</button>
+            <button id="remove-img" class="icon-btn remove-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
         </div>
 
         <!-- Action buttons -->
         <div class="actions">
-            <button id="ocr-btn" class="neon-btn">Extract Text</button>
+            <button id="ocr-btn" class="primary-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                Extract Text
+            </button>
         </div>
 
         <!-- Loading / progress -->
@@ -48,8 +62,12 @@
         </div>
 
         <!-- Output box -->
-        <textarea id="output" placeholder="Extracted text appears here…" readonly></textarea>
-        <button id="copy-btn" class="neon-btn">Copy Text</button>
+        <div class="output-wrapper">
+            <textarea id="output" placeholder="Extracted text will appear here…" readonly></textarea>
+            <button id="copy-btn" class="icon-btn copy-btn" title="Copy to clipboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+        </div>
     </div>
 
     <script src="script.js"></script>
