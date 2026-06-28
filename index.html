@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OCR – Screenshot to Text</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Neon‑styled Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Tesseract.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>📸 Screenshot to Text (OCR)</h1>
+
+        <!-- Language selector -->
+        <select id="lang-select" class="neon-select">
+            <option value="eng">English</option>
+            <option value="hin">Hindi</option>
+        </select>
+
+        <!-- Drag‑drop / Upload area -->
+        <div id="drop-zone" class="drop-zone">
+            <p>Drag &amp; drop an image here</p>
+            <button id="file-btn" class="neon-btn">Choose File</button>
+            <input type="file" id="file-input" accept="image/*" hidden>
+        </div>
+
+        <!-- Image preview -->
+        <div id="preview-wrapper" class="preview hidden">
+            <img id="preview-img" src="" alt="preview">
+            <button id="remove-img" class="neon-btn small">✖ Remove</button>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="actions">
+            <button id="ocr-btn" class="neon-btn">Extract Text</button>
+        </div>
+
+        <!-- Loading / progress -->
+        <div id="loader" class="loader hidden">
+            <div class="spinner"></div>
+            <p id="progress">Processing… 0%</p>
+        </div>
+
+        <!-- Output box -->
+        <textarea id="output" placeholder="Extracted text appears here…" readonly></textarea>
+        <button id="copy-btn" class="neon-btn">Copy Text</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
